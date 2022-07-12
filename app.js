@@ -8,19 +8,26 @@ const loginSignup = require('./login-signup');
 require('./login-signup');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
+const port = 4000 || process.env.PORT;
 
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io');
 
-const io = new Server(server || process.env.PORT, { cors: { origin: '*' } });
+const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(cookieParser());
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(bodyparser.json());
-app.use(cors({ credentials: true }));
 
-const port = 4000;
+app.use(
+    cors({
+        origin: 'http://localhost:3000',
+        credentials: true,
+        exposedHeaders: ['jwt', 'name', 'email', 'userId'],
+    })
+);
+
 const password = process.env.DB_PASSWORD;
 const myFirstDatabase = process.env.MY_FIRST_DATABASE;
 
@@ -124,7 +131,7 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(process.env.PORT || 4000, () => {
+server.listen(port, () => {
     console.log('listening at port 4000');
 });
 

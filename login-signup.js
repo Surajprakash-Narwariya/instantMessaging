@@ -91,16 +91,29 @@ router.post('/login', (req, res) => {
                 if (docs[0].password === hashPass) {
                     // user is verified
                     // make a token
+                    // console.log(docs[0]);
+
                     const token = generateAccessToken({
                         userId: docs[0].userId,
                         email: docs[0].email,
                         name: docs[0].name,
                     });
+
+                    // res.header(
+                    //     'Access-Control-Allow-Origin',
+                    //     'http://localhost:3000/'
+                    // );
+                    // res.header(
+                    //     'Access-Control-Allow-Headers',
+                    //     'Origin, X-Requested-With, Content-Type, Accept'
+                    // );
+                    // res.header('Access-Control-Allow-Credentials', true);
+
                     res.set('jwt', token);
                     res.set('userId', docs[0].userId);
                     res.set('name', docs[0].name);
                     res.set('email', docs[0].email);
-                    // console.log(req.body);
+                    // console.log(token);
 
                     // console.log(`loginSignup-97 ${docs[0].userId}`);
                     res.send('User is verified');

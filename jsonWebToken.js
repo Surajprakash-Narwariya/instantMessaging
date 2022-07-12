@@ -16,6 +16,7 @@ function generateAccessToken({ userId: userId, email: email, name: name }) {
 
 function authenticateToken(req, res, next) {
     const token = req.cookies.jwt;
+    console.log(token);
 
     if (token == null) return res.send('invalid access, please login');
     jwt.verify(token, secretKey, (err, user) => {
