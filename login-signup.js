@@ -21,6 +21,10 @@ router.get('/profile', authenticateToken, (req, res) => {
     res.send('Authenticated');
 });
 
+router.get('/test', (req, res) => {
+    res.send('Custom Message => Deployed Successfully');
+});
+
 //===============================for deleting data ===========================
 
 router.post('/delete', authenticateToken, (req, res) => {
