@@ -8,7 +8,7 @@ const loginSignup = require('./login-signup');
 require('./login-signup');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
-const port = 4000 || process.env.PORT;
+// const port = 4000 || process.env.PORT;
 
 const http = require('http');
 const server = http.createServer(app);
@@ -131,7 +131,7 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(port, () => {
+server.listen(4000 || process.env.PORT, () => {
     console.log('listening at port 4000');
 });
 
