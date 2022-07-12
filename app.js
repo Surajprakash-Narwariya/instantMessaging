@@ -13,7 +13,7 @@ const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io');
 
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server || process.env.PORT, { cors: { origin: '*' } });
 
 app.use(cookieParser());
 app.use(bodyparser.urlencoded({ extended: false }));
