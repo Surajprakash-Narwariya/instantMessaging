@@ -1,3 +1,4 @@
+// const functions = require('firebase-functions');
 const express = require('express');
 const app = express();
 const mangoose = require('mongoose');
@@ -128,3 +129,4 @@ server.listen(4000, () => {
 });
 
 // module.exports = { databaseCode };
+// exports.app = functions.https.onRequest(app);
