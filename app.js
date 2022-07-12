@@ -131,9 +131,8 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(4000 || process.env.PORT, () => {
+server.listen(process.env.PORT || 4000, () => {
     console.log('listening at port 4000');
 });
 
 // module.exports = { databaseCode };
-// exports.app = functions.https.onRequest(app);
