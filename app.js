@@ -22,7 +22,7 @@ app.use(bodyparser.json());
 
 app.use(
     cors({
-        origin: 'http://localhost:3000',
+        origin: ['http://localhost:3000', 'https://quickchat-81832.web.app'],
         credentials: true,
         exposedHeaders: ['jwt', 'name', 'email', 'userId'],
     })
