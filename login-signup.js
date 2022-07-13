@@ -99,15 +99,14 @@ router.post('/login', (req, res) => {
                         name: docs[0].name,
                     });
 
-                    // res.header(
-                    //     'Access-Control-Allow-Origin',
-                    //     'http://localhost:3000/'
-                    // );
-                    // res.header(
-                    //     'Access-Control-Allow-Headers',
-                    //     'Origin, X-Requested-With, Content-Type, Accept'
-                    // );
-                    // res.header('Access-Control-Allow-Credentials', true);
+                    res.cookie('accessToken', token, {
+                        expires: new Date(
+                            Date.now() + 3600 * 1000 * 24 * 180 * 1
+                        ), //second min hour days year
+                        secure: true, // set to true if your using https or samesite is none
+                        httpOnly: true, // backend only
+                        sameSite: 'none', // set to none for cross-request
+                    });
 
                     res.set('jwt', token);
                     res.set('userId', docs[0].userId);
