@@ -4,7 +4,7 @@ const mangoose = require('mongoose');
 const { generateAccessToken, authenticateToken } = require('./jsonWebToken.js');
 const { RemoteSocket } = require('socket.io');
 const { hash } = require('./crypto');
-// const { databaseCode } = require('./app');
+
 require('./app.js');
 
 function databaseCode(userId1, userId2) {
@@ -59,6 +59,7 @@ router.post('/signup', (req, res) => {
                 name: req.body.name,
                 email: req.body.email,
                 password: hashPass,
+                imageAddress: '',
                 contacts: [],
             });
             newUser.save().then(() => console.log('user is created'));
@@ -108,11 +109,12 @@ router.post('/login', (req, res) => {
                         sameSite: 'none', // set to none for cross-request
                     });
 
-                    res.set('jwt', token);
+                    // res.set('jwt', token);
                     res.set('userId', docs[0].userId);
                     res.set('name', docs[0].name);
                     res.set('email', docs[0].email);
-                    // console.log(token);
+                    res.set('imageAddress', docs[0].imageAddress);
+                    console.log(docs[0]);
 
                     // console.log(`loginSignup-97 ${docs[0].userId}`);
                     res.send('User is verified');
@@ -198,27 +200,60 @@ router.post('/quickchat/contacts', authenticateToken, (req, res) => {
         if (err) {
             console.log(err);
         }
+        // console.log(docs);
         res.send(docs.contacts);
     });
 });
 
 // Take the Chat data from database and show the user
-router.post('/getDataFromDB', authenticateToken, (req, res) => {
+router.post('/getchatdata', authenticateToken, async (req, res) => {
     var chatDatabase = mangoose.model('ChatDatabase');
 
     const from = req.body.from;
     const to = req.body.to;
+    const length = req.body.length;
     const dbCode = databaseCode(from, to);
 
-    chatDatabase.findOne({ dbCode: dbCode }, (err, docs) => {
-        // res.send(docs)
-        if (err) {
-            console.log(err);
-        }
-        // console.log(docs.chats);
+    const data = await chatDatabase.findOne(
+        { dbCode: dbCode },
+        { chats: { $slice: -length } }
+    );
+    if (data) {
+        res.send(data.chats);
+        // console.log(data.chats);
+    }
+});
 
-        res.send(docs?.chats);
-    });
+router.post('/getfirstmessage', async (req, res) => {
+    var chatDatabase = mangoose.model('ChatDatabase');
+
+    const from = req.body.from;
+    const to = req.body.to;
+    const length = -1;
+
+    if (to.length === 0) {
+        console.log('length is 0');
+        res.send('Size of Contact is 0');
+    } else {
+        to?.forEach((val, index, arr) => {
+            arr[index] = databaseCode(val, from);
+            // console.log(val + ' ' + index + ' ', arr);
+        });
+
+        console.log(to);
+
+        const data = await chatDatabase.find(
+            { dbCode: { $in: to } },
+            { chats: { $slice: -1 } }
+        );
+        if (data) {
+            // console.log(data);
+            res.send(data);
+            // data.map((item) => {
+            //     console.log(item.chats);
+            // });
+        }
+    }
 });
 
 module.exports = router;

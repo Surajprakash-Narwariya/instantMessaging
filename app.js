@@ -5,7 +5,8 @@ const mangoose = require('mongoose');
 const bodyparser = require('body-parser');
 const cors = require('cors');
 const loginSignup = require('./login-signup');
-require('./login-signup');
+const imageUpload = require('./imageUpload');
+const route = require('./route');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 // const port = 4000 || process.env.PORT;
@@ -13,6 +14,7 @@ require('dotenv').config();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io');
+const { builtinModules } = require('module');
 
 const io = new Server(server, { cors: { origin: '*' } });
 
@@ -24,7 +26,7 @@ app.use(
     cors({
         origin: ['http://localhost:3000', 'https://quickchat-81832.web.app'],
         credentials: true,
-        exposedHeaders: ['jwt', 'name', 'email', 'userId'],
+        exposedHeaders: ['jwt', 'name', 'email', 'userId', 'imageAddress'],
     })
 );
 
@@ -57,17 +59,20 @@ const UserSchema = new mangoose.Schema({
     name: String,
     email: { type: String, required: true },
     password: { type: String, required: true },
+    imageAddress: { type: String },
     contacts: { type: Array },
 });
 const user = mangoose.model('User', UserSchema);
 
 const ChatDatabaseSchema = new mangoose.Schema({
     dbCode: String,
+
     chats: [
         {
             fromUserId: String,
             toUserId: String,
             message: String,
+            time: String,
         },
     ],
 });
@@ -81,28 +86,64 @@ const chatDatabase = mangoose.model('ChatDatabase', ChatDatabaseSchema);
 
 // MIDDLE WARE ROUTES
 app.use('', loginSignup);
+app.use('', route);
+app.use('', imageUpload);
 
 //======================SOCKET.IO=========================
 
-const socketId = { randomUserId: '14322332' };
+const socketId = { randomUserId: '14322332' }; // socketId[ userId ] = socket.id
+const userIdentity = { socId: 'userID' }; // userIdentity[ socket.id ] = userId
 
 io.on('connection', (socket) => {
     console.log('user is connected');
 
+    socket.on('login', (data) => {
+        // console.log(data.user);
+        socketId[data.user] = socket.id;
+        userIdentity[socket.id] = data.user;
+    });
+
     socket.on('disconnecting', () => {
-        socketId[socket.id] = null;
+        // socketId[socket.id] = null;
+        const userId = userIdentity[socket.id];
+        delete socketId[userId];
+        delete userIdentity[socket.id];
+
         console.log('user is disconnected');
+    });
+
+    // Getting Online status in chat.js
+
+    socket.on('is-online', (data) => {
+        const { userId, sendTo } = data;
+        // console.log(userId + ' ' + sendTo);
+
+        const destination = socketId[sendTo];
+        // console.log(destination);
+        // socket.to(destination).emit('is-online', {
+        //     isOnline: false,
+        // });
+        if (socketId[userId]) {
+            socket.emit('is-online', {
+                isOnline: true,
+            });
+        } else {
+            socket.emit('is-online', {
+                isOnline: false,
+            });
+        }
     });
 
     socket.on('private-msg', (data) => {
         socketId[data.fromUserId] = socket.id;
         const destination = socketId[data.toUserId];
-        // console.log(destination);
+        // console.log('desit' + destination);
         // console.log(data);
         socket.to(destination).emit('private-msg', {
             fromUserId: data.fromUserId,
             toUserId: data.toUserId,
             message: data.message,
+            time: data.time,
         });
 
         // Receive message from USER and send it to DATABASE
@@ -115,6 +156,7 @@ io.on('connection', (socket) => {
             fromUserId: data.fromUserId,
             toUserId: data.toUserId,
             message: data.message,
+            time: data.time,
         };
 
         chatDatabase.findOneAndUpdate(
@@ -131,8 +173,24 @@ io.on('connection', (socket) => {
     });
 });
 
+app.post('/isOnline', (req, res) => {
+    const userId = req.body.userId;
+    if (socketId[userId] !== null) {
+        res.send({ online: true });
+    } else {
+        res.send({ online: false });
+    }
+});
+
+app.get('/socketid', (req, res) => {
+    res.send({ soc: socketId, use: userIdentity });
+});
+
 server.listen(process.env.PORT || 4000, () => {
     console.log('listening at port 4000');
 });
 
+module.exports.databaseCode = databaseCode;
 // module.exports = { databaseCode };
+// exports.databaseCode = databaseCode;
+// module.exports = databaseCode;
