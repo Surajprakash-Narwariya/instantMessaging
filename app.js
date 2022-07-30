@@ -26,7 +26,15 @@ app.use(
     cors({
         origin: ['http://localhost:3000', 'https://quickchat-81832.web.app'],
         credentials: true,
-        exposedHeaders: ['jwt', 'name', 'email', 'userId', 'imageAddress'],
+        exposedHeaders: [
+            'jwt',
+            'name',
+            'email',
+            'userId',
+            'imageAddress',
+            'publicKey',
+            'privateKey',
+        ],
     })
 );
 
@@ -57,6 +65,8 @@ mangoose.connect(
 const UserSchema = new mangoose.Schema({
     userId: String,
     name: String,
+    privateKey: String,
+    publicKey: String,
     email: { type: String, required: true },
     password: { type: String, required: true },
     imageAddress: { type: String },
@@ -66,7 +76,8 @@ const user = mangoose.model('User', UserSchema);
 
 const ChatDatabaseSchema = new mangoose.Schema({
     dbCode: String,
-
+    pk1: String,
+    pk2: String,
     chats: [
         {
             fromUserId: String,
